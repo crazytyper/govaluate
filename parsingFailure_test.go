@@ -178,6 +178,7 @@ func TestParsingFailure(test *testing.T) {
 			Input:    "foo.Bar.",
 			Expected: HANGING_ACCESSOR,
 		},
+		/* We now support access map values by key, hence the unexported check has been removed from the parser
 		ParsingFailureTest{
 
 			// this is expected to change once there are structtags in place that allow aliasing of fields
@@ -185,6 +186,7 @@ func TestParsingFailure(test *testing.T) {
 			Input:    "foo.bar",
 			Expected: UNEXPORTED_ACCESSOR,
 		},
+		*/
 		ParsingFailureTest{
 			Name:     "Incomplete Hex",
 			Input:    "0x",

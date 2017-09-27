@@ -256,6 +256,9 @@ func makeAccessorStage(pair []string) evaluationOperator {
 		var params []reflect.Value
 
 		value, err := parameters.Get(pair[0])
+		if _, ok := err.(*missingValueError); ok {
+			return nil, nil
+		}
 		if err != nil {
 			return nil, err
 		}
@@ -265,7 +268,7 @@ func makeAccessorStage(pair []string) evaluationOperator {
 		// therefore every call to an accessor sets up a defer that tries to recover from panics, converting them to errors.
 		defer func() {
 			if r := recover(); r != nil {
-				errorMsg := fmt.Sprintf("Failed to access '%s': %v", reconstructed, r.(string))
+				errorMsg := fmt.Sprintf("Failed to access '%s': %v", reconstructed, r)
 				err = errors.New(errorMsg)
 				ret = nil
 			}
@@ -280,67 +283,74 @@ func makeAccessorStage(pair []string) evaluationOperator {
 				coreValue = coreValue.Elem()
 			}
 
-			if coreValue.Kind() != reflect.Struct {
-				return nil, errors.New("Unable to access '" + pair[i] + "', '" + pair[i-1] + "' is not a struct")
-			}
-
-			field := coreValue.FieldByName(pair[i])
-			if field != (reflect.Value{}) {
-				value = field.Interface()
-				continue
-			}
-
-			method := coreValue.MethodByName(pair[i])
-			if method == (reflect.Value{}) {
-				return nil, errors.New("No method or field '" + pair[i] + "' present on parameter '" + pair[i-1] + "'")
-			}
-
-			switch right.(type) {
-			case []interface{}:
-
-				givenParams := right.([]interface{})
-				params = make([]reflect.Value, len(givenParams))
-				for idx, _ := range givenParams {
-					params[idx] = reflect.ValueOf(givenParams[idx])
+			if coreValue.Kind() == reflect.Map {
+				keyValue := reflect.ValueOf(pair[i])
+				valueValue := coreValue.MapIndex(keyValue)
+				if valueValue == (reflect.Value{}) {
+					return nil, nil
+				}
+				value = valueValue.Interface()
+			} else if coreValue.Kind() == reflect.Struct {
+				field := coreValue.FieldByName(pair[i])
+				if field != (reflect.Value{}) {
+					value = field.Interface()
+					continue
 				}
 
-			default:
-
-				if right == nil {
-					params = []reflect.Value{}
-					break
+				method := coreValue.MethodByName(pair[i])
+				if method == (reflect.Value{}) {
+					return nil, errors.New("No method or field '" + pair[i] + "' present on parameter '" + pair[i-1] + "'")
 				}
 
-				params = []reflect.Value{reflect.ValueOf(right.(interface{}))}
-			}
+				switch right.(type) {
+				case []interface{}:
 
-			returned := method.Call(params)
-			retLength := len(returned)
+					givenParams := right.([]interface{})
+					params = make([]reflect.Value, len(givenParams))
+					for idx := range givenParams {
+						params[idx] = reflect.ValueOf(givenParams[idx])
+					}
 
-			if retLength == 0 {
-				return nil, errors.New("Method call '" + pair[i-1] + "." + pair[i] + "' did not return any values.")
-			}
+				default:
 
-			if retLength == 1 {
+					if right == nil {
+						params = []reflect.Value{}
+						break
+					}
 
-				value = returned[0].Interface()
-				continue
-			}
-
-			if retLength == 2 {
-
-				errIface := returned[1].Interface()
-				err, validType := errIface.(error)
-
-				if validType && errIface != nil {
-					return returned[0].Interface(), err
+					params = []reflect.Value{reflect.ValueOf(right.(interface{}))}
 				}
 
-				value = returned[0].Interface()
-				continue
-			}
+				returned := method.Call(params)
+				retLength := len(returned)
 
-			return nil, errors.New("Method call '" + pair[0] + "." + pair[1] + "' did not return either one value, or a value and an error. Cannot interpret meaning.")
+				if retLength == 0 {
+					return nil, errors.New("Method call '" + pair[i-1] + "." + pair[i] + "' did not return any values.")
+				}
+
+				if retLength == 1 {
+
+					value = returned[0].Interface()
+					continue
+				}
+
+				if retLength == 2 {
+
+					errIface := returned[1].Interface()
+					err, validType := errIface.(error)
+
+					if validType && errIface != nil {
+						return returned[0].Interface(), err
+					}
+
+					value = returned[0].Interface()
+					continue
+				}
+
+				return nil, errors.New("Method call '" + pair[0] + "." + pair[1] + "' did not return either one value, or a value and an error. Cannot interpret meaning.")
+			} else {
+				return nil, errors.New("Unable to access '" + pair[i] + "', '" + pair[i-1] + "' is neither a map nor a struct")
+			}
 		}
 
 		value = castFixedPoint(value)

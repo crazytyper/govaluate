@@ -189,6 +189,7 @@ func readToken(stream *lexerStream, state lexerState, functions map[string]Expre
 				splits := strings.Split(tokenString, ".")
 				tokenValue = splits
 
+				/* We now support accessing map values by key, hence this check is removed
 				// check that none of them are unexported
 				for i := 1; i < len(splits); i++ {
 
@@ -199,6 +200,7 @@ func readToken(stream *lexerStream, state lexerState, functions map[string]Expre
 						return ExpressionToken{}, errors.New(errorMsg), false
 					}
 				}
+				*/
 			}
 			break
 		}
