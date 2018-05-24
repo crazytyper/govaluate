@@ -710,7 +710,7 @@ func TestNoParameterEvaluation(test *testing.T) {
 			Expected: true,
 		},
 		EvaluationTest{
-			
+
 			Name:  "Ternary/Java EL ambiguity",
 			Input: "false ? foo:length()",
 			Functions: map[string]ExpressionFunction{
@@ -1513,4 +1513,34 @@ func runEvaluationTests(evaluationTests []EvaluationTest, test *testing.T) {
 			test.Fail()
 		}
 	}
+}
+
+func TestTernaryTyping(test *testing.T) {
+
+	evaluationTests := []EvaluationTest{
+		EvaluationTest{
+			Name:     "Ternary with number",
+			Input:    "10 ? true",
+			Expected: true,
+		},
+		EvaluationTest{
+			Name:     "Ternary with zero",
+			Input:    "0 ? true : false",
+			Expected: false,
+		},
+		EvaluationTest{
+
+			Name:     "Ternary with string",
+			Input:    "'foo' ? true",
+			Expected: true,
+		},
+		EvaluationTest{
+
+			Name:     "Ternary with empty string",
+			Input:    "'' ? true : false",
+			Expected: false,
+		},
+	}
+
+	runEvaluationTests(evaluationTests, test)
 }

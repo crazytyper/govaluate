@@ -373,26 +373,6 @@ func TestComparatorTyping(test *testing.T) {
 	runEvaluationFailureTests(evaluationTests, test)
 }
 
-func TestTernaryTyping(test *testing.T) {
-
-	evaluationTests := []EvaluationFailureTest{
-		EvaluationFailureTest{
-
-			Name:     "Ternary with number",
-			Input:    "10 ? true",
-			Expected: INVALID_TERNARY_TYPES,
-		},
-		EvaluationFailureTest{
-
-			Name:     "Ternary with string",
-			Input:    "'foo' ? true",
-			Expected: INVALID_TERNARY_TYPES,
-		},
-	}
-
-	runEvaluationFailureTests(evaluationTests, test)
-}
-
 func TestRegexParameterCompilation(test *testing.T) {
 
 	evaluationTests := []EvaluationFailureTest{

@@ -156,8 +156,24 @@ func bitwiseNotStage(left interface{}, right interface{}, parameters Parameters)
 	return float64(^int64(right.(float64))), nil
 }
 func ternaryIfStage(left interface{}, right interface{}, parameters Parameters) (interface{}, error) {
-	if left.(bool) {
-		return right, nil
+	if left == nil {
+		return nil, nil
+	}
+
+	switch left := left.(type) {
+	case bool:
+		if left {
+			return right, nil
+		}
+	case float64:
+		if left != 0 {
+			return right, nil
+		}
+	case string:
+		if left != "" {
+			return right, nil
+		}
+	default:
 	}
 	return nil, nil
 }

@@ -531,9 +531,7 @@ func findTypeChecks(symbol OperatorSymbol) typeChecks {
 			right: isFloat64,
 		}
 	case TERNARY_TRUE:
-		return typeChecks{
-			left: isBool,
-		}
+		return typeChecks{} // we coerce everything to bool
 
 	// unchecked cases
 	case EQ:
