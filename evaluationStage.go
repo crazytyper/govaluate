@@ -232,6 +232,9 @@ func makeParameterStage(parameterName string) evaluationOperator {
 
 	return func(left interface{}, right interface{}, parameters Parameters) (interface{}, error) {
 		value, err := parameters.Get(parameterName)
+		if _, ok := err.(*missingValueError); ok {
+			return nil, nil
+		}
 		if err != nil {
 			return nil, err
 		}
