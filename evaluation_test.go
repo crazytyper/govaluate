@@ -1419,6 +1419,12 @@ func TestParameterizedEvaluation(test *testing.T) {
 			Parameters: []EvaluationParameter{fooParameter},
 			Expected:   false,
 		},
+		EvaluationTest{
+			Name:       "Null coalesce missing intermediate objects",
+			Input:      "foo.Nil.bar ?? false",
+			Parameters: []EvaluationParameter{fooParameter},
+			Expected:   false,
+		},
 	}
 
 	runEvaluationTests(evaluationTests, test)

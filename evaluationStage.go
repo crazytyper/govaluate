@@ -418,6 +418,8 @@ func makeAccessorStage(pair []string) evaluationOperator {
 				}
 
 				return nil, errors.New("Method call '" + pair[0] + "." + pair[1] + "' did not return either one value, or a value and an error. Cannot interpret meaning.")
+			} else if !coreValue.IsValid() || coreValue.IsNil() {
+				return nil, nil
 			} else {
 				return nil, errors.New("Unable to access '" + pair[i] + "', '" + pair[i-1] + "' is neither a map nor a struct")
 			}
